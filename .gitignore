@@ -1,0 +1,24 @@
+# Raw run data: large, rebuilt by rerunning
+results/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Local settings (paths on this machine)
+local.json
+
+# A campaign's private material: its own characters, modules, reports and notes.
+# The public repository is the engine, the stock party, the SRD monsters and the example module.
+roster/campaign.py
+roster/core.py
+roster/level4.py
+roster/sheet.py
+roster/sheets.json
+roster/extra.json
+roster/personality.json
+roster/pcstats.json
+modules/arbiters_grounds/
+modules/temple_of_the_storm/
+Reports/
+pvp/
+Playtest Simulator.md
