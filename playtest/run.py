@@ -188,7 +188,7 @@ class Run:
         if not any(p.hd > 0 for p in s.alive) and not sr_spent: return False
         s.short_rests += 1
         song = next((getattr(p, 'song_of_rest') for p in s.pcs if not p.dead and getattr(p, 'song_of_rest', None)), None)
-        for p in s.alive: p.short_rest(song)
+        for p in s.alive: p.short_rest(song, recover=s.cfg.get('arcane_recovery', True))
         s.events.append(f'short rest ({s.room})')
         return True
     def long_rest(s, where):
@@ -199,7 +199,7 @@ class Run:
                 t = s.wander_roll(f'long rest ({where})')
                 if t:
                     if R.random() < 0.5:
-                        for p in s.alive: p.short_rest()
+                        for p in s.alive: p.short_rest(recover=s.cfg.get('arcane_recovery', True))
                     r = s.fight('wandering monsters during rest', [], 'normal', patrol=t)
                     if r == 'dead': return
         for p in s.alive: p.long_rest()

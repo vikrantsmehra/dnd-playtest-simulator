@@ -21,6 +21,7 @@ def parse_sets(sets):
     out = {}
     for s in sets or []:
         k, _, v = s.partition('=')
+        v = {'True': 'true', 'False': 'false', 'None': 'null'}.get(v, v)      # Python spellings work too
         try: out[k] = json.loads(v)
         except ValueError: out[k] = v
     return out

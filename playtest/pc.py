@@ -9,6 +9,7 @@ from . import hooks as H
 
 STATS = {}          # saves, ability modifiers and skills per character, keyed by name; filled by the roster
 IMP = {'minor': 0, 'normal': 1, 'major': 2, 'boss': 3}
+ORD = {1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th'}
 # self-range cones, cubes and lines: in PvP these need you to close the distance, like melee
 CLOSE_RANGE = {'burning hands', 'thunderwave', 'cold breath', 'acid breath', 'fire breath', "aganazzar's scorcher"}
 
@@ -64,8 +65,10 @@ class PC(Creature):
         s.down = False; s.stable = False; s.ko = False
         if s.rot and s.hp <= 0: s.down = True; s.stable = True      # cursed: no HP back, still unconscious
         s.temp = 0; s.sw_active = False
-    def short_rest(s, song=None):
+    def short_rest(s, song=None, recover=True):
+        """An hour's rest. recover=False skips Arcane Recovery (the 'arcane_recovery' setting)."""
         s.pact = dict(s.max_pact)
+        if recover: s.arcane_recovery()
         for k in s.sr_keys:
             if k in s.max_uses: s.uses[k] = s.max_uses[k]
         if s.rot: return
@@ -77,6 +80,20 @@ class PC(Creature):
             s.hp = min(s.maxhp, s.hp + max(1, h))
         if song and s.hp < s.maxhp: s.hp = min(s.maxhp, s.hp + roll(song))
         s.temp = 0; s.sw_active = False
+    def arcane_recovery(s, dry=False):
+        """Once a day, on a short rest: spent wizard slots back, lowest first, whose levels add up to no more than
+        half the wizard level (rounded up), none of 6th level or higher. Returns the levels regained; dry=True only
+        says what it would regain."""
+        wiz = getattr(s, 'classes', {}).get('wizard', 0)
+        if not wiz or s.uses.get('ar', 0) <= 0: return []
+        budget = -(-wiz // 2); got = []; slots = dict(s.slots)
+        for l in sorted(s.max_slots):
+            while l <= 5 and budget >= l and slots.get(l, 0) < s.max_slots[l]:
+                slots[l] = slots.get(l, 0) + 1; budget -= l; got.append(l)
+        if got and not dry:
+            s.slots = slots; s.uses['ar'] -= 1
+            log(f"    {s.name} Arcane Recovery: regains " + ', '.join(f'a {ORD[l]}-level slot' for l in got))
+        return got
     # ---------- helpers ----------
     def allies(s, enc): return [p for p in enc.pcs if not p.dead]
     def downed(s, enc): return [p for p in enc.pcs if p.down and not p.dead and not p.rot]
