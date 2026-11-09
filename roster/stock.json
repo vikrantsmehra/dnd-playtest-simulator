@@ -20,5 +20,17 @@
   "classes": [{"class": "wizard", "sub": "Evocation", "level": 1}], "level": 1, "race": "high elf",
   "abilities": {"str": 8, "dex": 16, "con": 13, "int": 16, "wis": 12, "cha": 10}, "save_prof": ["int", "wis"],
   "skill_prof": {"arcana": 1, "investigation": 1, "history": 1, "perception": 1}, "ac": {"armor": 13, "dex": 3, "shield": 0, "misc": 0},
-  "attacks": [{"name": "Dagger", "hit": 5, "dmg": "1d4+3", "type": "piercing", "range": "Melee, 20/60 ft", "desc": "Finesse, light, thrown"}]}
+  "attacks": [{"name": "Dagger", "hit": 5, "dmg": "1d4+3", "type": "piercing", "range": "Melee, 20/60 ft", "desc": "Finesse, light, thrown"}]},
+ "Stock Barbarian": {"name": "Stock Barbarian", "_source": "Half-orc Berserker barbarian: standard array plus half-orc bonuses, no armour (Unarmored Defense: 10 + Dex + Con, so misc carries the Con), greataxe and javelins.",
+  "classes": [{"class": "barbarian", "sub": "Path of the Berserker", "level": 1}], "level": 1, "race": "half-orc",
+  "abilities": {"str": 17, "dex": 13, "con": 15, "int": 8, "wis": 12, "cha": 10}, "save_prof": ["str", "con"],
+  "skill_prof": {"athletics": 1, "perception": 1, "intimidation": 1}, "ac": {"armor": 10, "dex": 1, "shield": 0, "misc": 2},
+  "attacks": [{"name": "Greataxe", "hit": 5, "dmg": "1d12+3", "type": "slashing", "range": "Melee", "desc": "Heavy, two-handed"},
+              {"name": "Javelin", "hit": 5, "dmg": "1d6+3", "type": "piercing", "range": "30/120 ft", "desc": "Thrown"}]},
+ "Stock Bard": {"name": "Stock Bard", "_source": "Half-elf Lore bard: standard array plus half-elf bonuses, leather armour, rapier and dagger, the builder's default spell picks.",
+  "classes": [{"class": "bard", "sub": "College of Lore", "level": 1}], "level": 1, "race": "half-elf",
+  "abilities": {"str": 8, "dex": 15, "con": 14, "int": 10, "wis": 12, "cha": 17}, "save_prof": ["dex", "cha"],
+  "skill_prof": {"persuasion": 1, "performance": 1, "insight": 1, "perception": 1, "deception": 1}, "ac": {"armor": 11, "dex": 2, "shield": 0, "misc": 0},
+  "attacks": [{"name": "Rapier", "hit": 4, "dmg": "1d8+2", "type": "piercing", "range": "Melee", "desc": "Finesse"},
+              {"name": "Dagger", "hit": 4, "dmg": "1d4+2", "type": "piercing", "range": "Melee, 20/60 ft", "desc": "Finesse, light, thrown"}]}
 }

@@ -10,7 +10,7 @@ modules/README.md. Assumptions: the goblin shaman has no stat block in the adven
 necrotic spell attack; 'a number of potions' in the tomb is two; opening a sarcophagus raises one skeleton per PC.
 """
 from playtest.module import Module
-from playtest.decisions import choose, traits
+from playtest.decisions import choose, traits, actor
 from playtest import bestiary as B
 
 MODULE = Module('delian_tomb', 'The Delian Tomb', levels=(1, 1), party_size=(3, 6),
@@ -21,11 +21,14 @@ B.add_variant('goblin', 'Goblin Shaman', actions=[
     'Hex Bolt. Ranged Spell Attack: +4 to hit, range 60 ft., one target. Hit: 7 (2d6) necrotic damage.'])
 
 def tomb(d, run, node):
-    """Six sarcophagi and the Lord's. Opening one wakes righteous skeletons; a curious party may try it."""
-    c, q, b = traits(run)
+    """Six sarcophagi and the Lord's. Opening one wakes righteous skeletons. It's one person's call: whoever is most
+    curious decides, on their own caution and curiosity, and everyone fights what wakes."""
+    who = actor(run, 'curiosity')
+    c, q, b = traits(run, who)
     run.potions += 2
     pick = choose(run, 'Tomb of the Delian Order: open a sarcophagus?',
-                  {'open one': (0.2 + 0.6 * q, 'the Goblin Slayer and Delian mail are inside'), 'leave them be': (0.5 + 0.2 * c, 'it is a tomb')})
+                  {'open one': (0.2 + 0.6 * q, 'the Goblin Slayer and Delian mail are inside'), 'leave them be': (0.5 + 0.2 * c, 'it is a tomb')},
+                  who=who, trait='curiosity')
     if pick == 'open one':
         res = run.fight('Tomb: the righteous dead', B.group(f'skeleton x{len(run.alive)}'), 'normal', optional=True)
         if res == 'win': run.flags['goblin_slayer'] = True
@@ -72,5 +75,6 @@ m.report = report
 
 m.study('stock', 'stock', 2000, 41, desc='The stock party: fighter, cleric, rogue, wizard at 1st level', label='Stock party')
 m.study('three', 'stock@1x3', 2000, 41, desc='Fighter, cleric and rogue only: a three-player table', label='Three PCs')
-m.study('five', 'stock@1x5', 2000, 41, desc='A five-player table (a second fighter)', label='Five PCs')
+m.study('five', 'stock@1x5', 2000, 41, desc='A five-player table (adds Grukk, a barbarian)', label='Five PCs')
+m.study('six', 'stock@1x6', 2000, 41, desc='A six-player table (adds Grukk, a barbarian, and Lyra, a bard)', label='Six PCs')
 m.study('level2', 'stock@2', 2000, 41, desc='The stock party at 2nd level', label='Stock party, 2nd level')

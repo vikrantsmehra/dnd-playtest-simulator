@@ -145,6 +145,18 @@ def summarize(module, data, order, brief=None):
             if abs(d) >= 0.10: tr.append((t, d, sum(lo) / len(lo), sum(hi) / len(hi)))
     for t, d, lo, hi in tr:
         items.append(('Low', f"**The module {'rewards' if d > 0 else 'punishes'} {t}.** Low-{t} parties finished {P(lo)}, high-{t} parties {P(hi)}."))
+    lead = defaultdict(list)
+    for r in rows:
+        if r.get('leader'): lead[r['leader']].append(r['complete'])
+    big = {k: sum(v) / len(v) for k, v in lead.items() if len(v) >= 100}
+    if len(big) >= 2 and max(big.values()) - min(big.values()) >= 0.10:
+        try:
+            from roster import NICKNAMES
+        except ImportError:
+            NICKNAMES = {}
+        hi = max(big, key=big.get); lo = min(big, key=big.get)
+        items.append(('Low', f"**Who leads matters.** Parties led by {NICKNAMES.get(hi, hi)} finished {P(big[hi])}; "
+                             f"led by {NICKNAMES.get(lo, lo)}, {P(big[lo])}."))
     order_ = {'High': 0, 'Focus': 1, 'Medium': 2, 'Low': 3}
     items.sort(key=lambda x: order_[x[0]])
     L += ['## Priority items', '']

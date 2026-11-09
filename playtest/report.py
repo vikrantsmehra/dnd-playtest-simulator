@@ -74,6 +74,48 @@ def trait_table(rows):
         lines.append([t, P(sum(lo) / max(1, len(lo))), P(sum(mid) / max(1, len(mid))), P(sum(hi) / max(1, len(hi)))])
     return pct_table(['Trait', 'Low', 'Middle', 'High'], lines)
 
+SOLO = re.compile(r"^(?P<who>[^,:]+), (?P<trait>caution|curiosity|boldness) (?P<v>[0-9.]+): ")
+
+def _nick(name):
+    try:
+        from roster import NICKNAMES
+    except ImportError:
+        NICKNAMES = {}
+    return NICKNAMES.get(name, name)
+
+def voices_lines(rows):
+    """Per-member personalities (voices='loudest' or 'average'): whose voice set each party trait, how often the party
+    split and the leader settled it, finish rate by leader, and who acted alone at each individual decision."""
+    rs = [r for r in rows if r.get('member_traits')]
+    if not rs: return []
+    n = len(rs); out = [f"Each member has their own traits (rule: `{rs[0].get('voices')}`)."
+                        + (" The member furthest from 0.5 speaks for the party, unless the rest clearly lean the other way; then the leader decides." if rs[0].get('voices') == 'loudest' else ''), '']
+    lines = []
+    for t in ('caution', 'curiosity', 'boldness'):
+        how = Counter(r['voice'].get(t, {}).get('how') for r in rs)
+        over = sum(1 for r in rs if r['voice'].get(t, {}).get('how') == 'leader' and r['voice'][t].get('who') != r['voice'][t].get('over'))
+        lines.append([t, P(how.get('loudest', 0) / n), P((how.get('leader', 0) + how.get('split, averaged', 0)) / n), P(over / n)])
+    out += pct_table(['Trait', 'Set by the loudest voice', 'Split', 'Leader overruled the loudest'], lines) + ['']
+    lead = defaultdict(list)
+    for r in rs:
+        if r.get('leader'): lead[_nick(r['leader'])].append(r)
+    if lead:
+        ll = []
+        for nm, g in sorted(lead.items(), key=lambda kv: -len(kv[1])):
+            splits = sum(1 for r in g for v in r['voice'].values() if v.get('how') == 'leader')
+            ll.append([nm, len(g), P(sum(r['complete'] for r in g) / len(g)), f"{splits / len(g):.2f}"])
+        out += ['**Finished, by who led:**', ''] + pct_table(['Leader', 'Runs', 'Finished', 'Splits settled per run'], ll) + ['']
+    solo = defaultdict(lambda: defaultdict(list))
+    for r in rs:
+        for point, pick, why in r['decisions']:
+            m = SOLO.match(why or '')
+            if m: solo[point][(m['who'], pick)].append(r['complete'])
+    for point, d in solo.items():
+        tot = sum(len(v) for v in d.values())
+        sl = [[who, pick, len(v), P(len(v) / tot), P(sum(v) / len(v))] for (who, pick), v in sorted(d.items(), key=lambda kv: -len(kv[1]))]
+        out += [f"**Who decided alone: {point}**", ''] + pct_table(['Who', 'Choice', 'Runs', 'Share', 'Finished'], sl) + ['']
+    return out
+
 def character_lines(rows):
     teams = Counter(tuple(r['team']) for r in rows)
     if len(teams) < 4: return []
@@ -178,7 +220,9 @@ def write_report(slug, out=None):
         L += ['### Encounters', ''] + encounter_table(rs) + ['']
         dt = decision_table(rs)
         if len(dt) > 2: L += ['### Party decisions', ''] + dt + ['']
-        L += ['### Personality', '', 'Share of runs finished, by trait (low < 0.37 ≤ middle < 0.63 ≤ high).', ''] + trait_table(rs) + ['']
+        L += ['### Personality', '', 'Share of runs finished, by the party\'s combined trait (low < 0.37 ≤ middle < 0.63 ≤ high).', ''] + trait_table(rs) + ['']
+        vl = voices_lines(rs)
+        if vl: L += ['### Voices, leaders and solo choices', ''] + vl
         ch = character_lines(rs)
         if ch: L += ['### Characters', ''] + ch + ['']
         if getattr(module, 'report', None):

@@ -87,6 +87,21 @@ python3 -m playtest report my_module
 | `m.metrics = fn(run) -> dict` and `m.report = fn(rows) -> lines` | Extra numbers per run, and the module's own section of the report |
 | `m.places`, `m.map_groups` | Extra map boxes (the road, a session break), and how studies are grouped into map panels |
 
+## Decisions: group or individual?
+
+Every party member has their own caution, curiosity and boldness. How they combine is the `voices` setting (see `playtest/decisions.py`): by default the loudest voice speaks for the party, and the run's leader settles it when the rest clearly disagree. `voices=party` plays the original single party personality.
+
+- **A group choice** (where to go, whether to rest, a side trip) scores its options from `c, q, b = traits(run)`, the party's combined traits, and calls `choose(run, point, options)`. The leader is already folded into `traits(run)`, so a module never handles it.
+- **A choice one person makes alone** (opening a sarcophagus, noticing a way past, stepping somewhere careless) names who acts, scores it with their own traits, and passes them to `choose` so the log names them:
+
+```python
+who = actor(run, 'curiosity')            # the most curious member, with a little noise; actor(run, 'caution', low=True) for the most careless
+c, q, b = traits(run, who)
+pick = choose(run, 'Tomb: open a sarcophagus?', {...}, who=who, trait='curiosity')
+```
+
+Under `voices=party`, `actor()` returns `None` and `traits(run, None)` is the party's, so the same code plays exactly as before.
+
 ## Terrain
 
 Positioning is by zones, not a grid. Give a room `terrain=dict(...)` with any of:

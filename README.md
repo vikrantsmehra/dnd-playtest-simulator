@@ -20,7 +20,7 @@ Python 3.9+, no dependencies. `pypdf` is only needed for reading character-sheet
 ## What it does
 
 - **Runs whole adventures, not single fights.** An adventure is a map of rooms joined by doors and passages, written in [the module format](modules/README.md). Each room can hold monsters, traps, skill checks, loot, terrain, or a short script for anything unusual. The party moves through it from room to room.
-- **The party makes its own choices.** Each run draws a personality (caution, curiosity, boldness). The party picks its route, weighs side trips, decides when to rest or retreat, and can take a deal, all from that personality and what it can see.
+- **The party makes its own choices.** Each member has a personality (caution, curiosity, boldness), drawn fresh each run for the stock party. The loudest voice speaks for the group, and the run's leader settles it when the rest clearly disagree; a choice one person would make alone is theirs, and the log names them. The party picks its route, weighs side trips, decides when to rest or retreat, and can take a deal, all from those personalities and what it can see. `--set voices=party` plays the original single party personality.
 - **Combat follows the rules:**
   - attacks, saves, spells and slots;
   - conditions and concentration;

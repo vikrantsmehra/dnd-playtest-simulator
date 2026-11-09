@@ -6,7 +6,7 @@ Where to go next: every unexplored room the party can reach is a candidate. A mo
 nearest unexplored room. Once the goal is reachable, a curious party may still explore what's left first.
 """
 from .run import *
-from .decisions import draw_traits, party_traits, res_score, choose, traits
+from .decisions import draw_traits, party_traits, combine, res_score, choose, traits
 from .dice import R, VERBOSE, LOG, log
 from . import hooks as H
 
@@ -186,7 +186,7 @@ class Director:
         return True
     def play(s):
         run = s.run
-        run.traits = party_traits(run)
+        run.traits = combine(run)
         c, q, b = traits(run)
         run.sr_thresh = 0.5 + 0.3 * c            # cautious parties rest sooner
         run.retreat_frac = 0.5 - 0.25 * c        # and pull out of a losing fight sooner

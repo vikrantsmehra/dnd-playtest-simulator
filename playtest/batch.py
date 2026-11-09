@@ -29,6 +29,8 @@ def row(module, run, team, seed):
              captures=run.captures, retreats=getattr(run, 'retreats', 0), revived=getattr(run, 'revived', 0),
              rot=[p.name for p in run.pcs if p.rot], events=run.events, decisions=getattr(run, 'decisions', []),
              route=getattr(run, 'route', []), traits=getattr(run, 'traits', {}), wanders=len(run.wanders),
+             voices=getattr(run, 'voices', 'party'), member_traits=getattr(run, 'member_traits', {}),
+             leader=getattr(run, 'leader', None), voice=getattr(run, 'voice', {}),
              enc={k: dict(v) for k, v in run.enc_stats.items()}, locks=run.metrics.get('locks', {}),
              extra={k: v for k, v in run.metrics.items() if k != 'locks'})
     if module.metrics: r['m'] = module.metrics(run)
@@ -80,6 +82,22 @@ def run_batch(slug, study=None, party=None, n=None, seed=None, cfg=None, jobs=No
         print(f"{slug} {name}: {n} runs in {meta['seconds']}s, finished {100 * done / n:.1f}%  -> results/{slug}/{name}.json")
     return rows
 
+def members(run):
+    """Replay header lines: each member's own traits, the leader, and how each party trait was settled."""
+    from .decisions import nick
+    mt = getattr(run, 'member_traits', {})
+    if not mt: return []
+    by = {p.name: p for p in run.pcs}
+    out = [f"  {nick(by[n])}{' (leader)' if n == getattr(run, 'leader', None) else ''}: " + ', '.join(f'{k} {v:.2f}' for k, v in t.items())
+           for n, t in mt.items()]
+    for t, v in getattr(run, 'voice', {}).items():
+        who = nick(by[v['who']]) if v.get('who') in by else None
+        over = nick(by[v['over']]) if v.get('over') in by else None
+        if v['how'] == 'loudest': out.append(f"  {t}: {who}'s voice ({v['value']:.2f})")
+        elif v['how'] == 'leader': out.append(f"  {t}: split; {who} decided ({v['value']:.2f}; {over} wanted {v['wanted']:.2f}, the rest {v['rest']:.2f})")
+        else: out.append(f"  {t}: {v['how']} ({v['value']:.2f})")
+    return out
+
 def replay(slug, study=None, seed=None, party=None, cfg=None, path=None):
     """Play one run again with the full roll-by-roll log."""
     module = load(slug)
@@ -87,7 +105,9 @@ def replay(slug, study=None, seed=None, party=None, cfg=None, path=None):
     c = dict(module.config); c.update(st.cfg if st else {}); c.update(cfg or {})
     run, team = one(module, st.parties if st else party, c, seed, verbose=True)
     head = [f"# {module.title}: replay of seed {seed}" + (f" ({study})" if study else ''),
-            f"Party: {', '.join(team)}", f"Traits: " + ', '.join(f'{k} {v:.2f}' for k, v in run.traits.items()),
+            f"Party: {', '.join(team)}", f"Traits: " + ', '.join(f'{k} {v:.2f}' for k, v in run.traits.items())
+            + (f" (voices: {run.voices})" if getattr(run, 'voices', 'party') != 'party' else '')] + members(run) + [
+
             f"Outcome: {run.outcome}" + (f" at {run.fail_room}" if run.fail_room else ''), '']
     text = '\n'.join(head + LOG)
     if path: open(path, 'w').write(text)
